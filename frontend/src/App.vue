@@ -1,11 +1,14 @@
-<script setup></script>
+<script setup>
+import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import SongBar from './components/SongBar.vue';
+
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <SongBar />
 </template>
 
-<style scoped></style>
+
+
+

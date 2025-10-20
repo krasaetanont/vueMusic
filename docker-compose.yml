@@ -20,7 +20,8 @@ services:
       - "3000:3000"
     volumes:
       - ./backend:/app
-      - ./music_files:/app/music_files
+      - ./musicFiles:/musicFiles
+      - ./lyrics:/lyrics
     working_dir: /app
     environment:
       - DB_HOST=db
