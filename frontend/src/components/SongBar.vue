@@ -28,6 +28,7 @@ onMounted( async () => {
         <h3>{{ song.title }}</h3>
         <p>Artist: {{ song.artist }}</p>
         <p>Genre: {{ song.genre }}</p>
+        <p>filepath: {{ song.file_path }}</p>
       </div>
     </div>
   </div>
