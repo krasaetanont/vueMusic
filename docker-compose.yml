@@ -23,20 +23,29 @@ services:
     working_dir: /app
     environment:
       - DB_HOST=db
-      - DB_USER=root
+      - DB_USER=postgres
       - DB_PASSWORD=mysecret
       - DB_NAME=musicdb
+      - DB_PORT=5432
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     container_name: vueMusic_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: mysecret
-      MYSQL_DATABASE: musicdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecret
+      POSTGRES_DB: musicdb
     volumes:
-      - ./db_data:/var/lib/mysql
+      - ./db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "3306:3306"
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
