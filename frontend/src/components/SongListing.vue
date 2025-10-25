@@ -1,7 +1,9 @@
 <script setup>
-import { reactive, onMounted, defineExpose } from 'vue';
+import { reactive, onMounted, defineExpose, inject } from 'vue';
 import axios from 'axios';
-import song from '@/components/Song.vue';
+import Song from '@/components/Song.vue';
+
+const playSong = inject('playSong');
 
 const state = reactive({
     songs: [],
@@ -24,6 +26,12 @@ const refreshSongs = () => {
     fetchSongs();
 };
 
+const handlePlaySong = (song) => {
+    if (playSong) {
+        playSong(song);
+    }
+};
+
 onMounted(() => {
     fetchSongs();
 });
@@ -36,22 +44,22 @@ defineExpose({
 
 <template>
   <div class="w-full p-4">
-    <h2 class="text-2xl font-bold">My Music Library</h2>
+    <h2 class="text-2xl font-bold mb-4">My Music Library</h2>
     
-    <div v-if="state.isLoading" class="loading">
+    <div v-if="state.isLoading" class="loading text-[var(--color-muted)] text-center py-8">
       Loading songs...
     </div>
     
-    <div v-else-if="state.songs.length === 0" class="empty-state">
+    <div v-else-if="state.songs.length === 0" class="empty-state text-[var(--color-muted)] text-center py-8">
       No songs yet. Upload your first song!
     </div>
     
-    <div v-else class="m-2">
-      <song 
+    <div v-else class="space-y-1">
+      <Song 
         v-for="songItem in state.songs" 
         :key="songItem.id" 
-        :song="songItem" 
-        class="mb-4"
+        :song="songItem"
+        @play="handlePlaySong"
       />
     </div>
   </div>
