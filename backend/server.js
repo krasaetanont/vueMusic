@@ -1,9 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { Pool } = require('pg');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Ensure upload directories exist
+const musicDir = '/musicFiles';
+const lyricsDir = '/lyrics';
+
+if (!fs.existsSync(musicDir)) {
+  fs.mkdirSync(musicDir, { recursive: true });
+}
+if (!fs.existsSync(lyricsDir)) {
+  fs.mkdirSync(lyricsDir, { recursive: true });
+}
 
 // Database configuration
 const pool = new Pool({
@@ -12,6 +26,34 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'mysecret',
   database: process.env.DB_NAME || 'musicdb',
   port: process.env.DB_PORT || 5432,
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, musicDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const filename = `${uniqueSuffix}${ext}`;
+    cb(null, filename);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a'];
+    if (allowedMimes.includes(file.mimetype) || file.mimetype.startsWith('audio/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only audio files are allowed.'));
+    }
+  }
 });
 
 // Middleware
@@ -25,6 +67,109 @@ app.use('/lyrics', express.static('/lyrics'));
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// ==================== FILE UPLOAD ENDPOINT ====================
+
+// Upload music file with metadata
+app.post('/api/upload', upload.single('musicFile'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { title, artist, genre } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    if (!title || !artist || !genre) {
+      // Delete uploaded file if validation fails
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Title, artist, and genre are required' });
+    }
+
+    await client.query('BEGIN');
+
+    // Get or create artist
+    let artistResult = await client.query(
+      'SELECT id FROM artists WHERE name = $1',
+      [artist]
+    );
+    
+    let artistId;
+    if (artistResult.rows.length === 0) {
+      const newArtist = await client.query(
+        'INSERT INTO artists (name) VALUES ($1) RETURNING id',
+        [artist]
+      );
+      artistId = newArtist.rows[0].id;
+    } else {
+      artistId = artistResult.rows[0].id;
+    }
+
+    // Get or create genre
+    let genreResult = await client.query(
+      'SELECT id FROM genres WHERE name = $1',
+      [genre]
+    );
+    
+    let genreId;
+    if (genreResult.rows.length === 0) {
+      const newGenre = await client.query(
+        'INSERT INTO genres (name) VALUES ($1) RETURNING id',
+        [genre]
+      );
+      genreId = newGenre.rows[0].id;
+    } else {
+      genreId = genreResult.rows[0].id;
+    }
+
+    // Insert music record
+    const filePath = `/music/${req.file.filename}`;
+    const musicResult = await client.query(
+      'INSERT INTO musics (title, file_path) VALUES ($1, $2) RETURNING *',
+      [title, filePath]
+    );
+    const music = musicResult.rows[0];
+
+    // Link artist to music
+    await client.query(
+      'INSERT INTO music_artists (music_id, artist_id) VALUES ($1, $2)',
+      [music.id, artistId]
+    );
+
+    // Link genre to music
+    await client.query(
+      'INSERT INTO music_genres (music_id, genre_id) VALUES ($1, $2)',
+      [music.id, genreId]
+    );
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'Upload successful',
+      music: {
+        id: music.id,
+        title: music.title,
+        file_path: music.file_path,
+        artist: { id: artistId, name: artist },
+        genre: { id: genreId, name: genre }
+      }
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    
+    // Delete uploaded file if database operation fails
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  } finally {
+    client.release();
+  }
 });
 
 // ==================== MUSIC ENDPOINTS ====================
@@ -205,11 +350,25 @@ app.put('/api/musics/:id', async (req, res) => {
 app.delete('/api/musics/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM musics WHERE id = $1 RETURNING *', [id]);
     
-    if (result.rows.length === 0) {
+    // Get file path before deleting
+    const musicResult = await pool.query('SELECT file_path FROM musics WHERE id = $1', [id]);
+    
+    if (musicResult.rows.length === 0) {
       return res.status(404).json({ error: 'Music not found' });
     }
+    
+    const result = await pool.query('DELETE FROM musics WHERE id = $1 RETURNING *', [id]);
+    
+    // Delete physical file
+    const filePath = musicResult.rows[0].file_path;
+    if (filePath) {
+      const fullPath = path.join(musicDir, path.basename(filePath));
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+    
     res.json({ message: 'Music deleted successfully' });
   } catch (err) {
     console.error(err);
@@ -574,6 +733,23 @@ app.delete('/api/playlists/:id/musics/:musicId', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 50MB.' });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  
+  if (err.message === 'Invalid file type. Only audio files are allowed.') {
+    return res.status(400).json({ error: err.message });
+  }
+  
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server

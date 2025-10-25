@@ -1,7 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import Navbar from './components/Navbar.vue'
-import Player from './components/player.vue';
+import Player from './components/Player.vue';
 </script>
 
 <template>

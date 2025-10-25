@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
 const props = defineProps({
@@ -9,18 +9,11 @@ const props = defineProps({
     }
 })
 
-const playSong = (id) => {
-
-}
 
 </script>
 <template>
-    <div class="">
-        <RouterLink 
-        :to="`/songs/${song.id}`" 
-        class="text-[var(--color-text-dark)] text-xl"
-        >{{  song.title }}
-        </RouterLink>
+    <div class="" >
+        <h1 @click="$emit('play', song)">{{ song.title }}</h1>
         <br/>
         <RouterLink 
         :to="`/artists/${song.artist}`"

@@ -28,6 +28,16 @@ const isActiveLink = (routePath) => {
           'rounded-md']"
         >Playlists
     </RouterLink>
+    <RouterLink
+      to="/upload"
+      :class="[isActiveLink('/playlists')
+        ? 'bg-accent-hover text-[var(--color-accent)]'
+        : 'hover:bg-accent hover:text-white', 'text-white',
+          'px-3',
+          'py-2',
+          'rounded-md']"
+        >Upload
+    </RouterLink>
       
   </div>
 </template>

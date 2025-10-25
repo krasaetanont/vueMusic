@@ -8,10 +8,10 @@ const state = reactive({
     isLoading: true
 });
 
-const fetchPlaylist = async () => {
+const fetchPlaylists = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/playlists`);
+        const response = await axios.get(`http://localhost:3000/api/musics`);
         state.songs = response.data;
     } catch (error) {
         console.error('Error fetching song details:', error);
@@ -20,17 +20,17 @@ const fetchPlaylist = async () => {
     }
 };
 
-const refreshSongs = () => {
-    fetchSongs();
+const refreshPlaylists = () => {
+    fetchPlaylists();
 };
 
 onMounted(() => {
-    fetchSongs();
+    fetchPlaylists();
 });
 
 // Expose method to parent component
 defineExpose({
-    refreshSongs
+    refreshPlaylists
 });
 </script>
 
