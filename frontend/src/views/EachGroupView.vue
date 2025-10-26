@@ -2,10 +2,11 @@
 import { reactive, onMounted, defineExpose, inject, defineProps } from 'vue';
 import axios from 'axios';
 import Song from '@/components/Song.vue';
+import { useRoute } from 'vue-router';
 
-defineProps({
-  limit: Number
-})
+const route = useRoute();
+const itemId = route.params.id;
+const itemType = route.path.split('/')[1];
 
 const playSong = inject('playSong');
 
@@ -17,7 +18,7 @@ const state = reactive({
 const fetchSongs = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/musics`);
+        const response = await axios.get(`http://localhost:3000/api/${itemType}/${itemId}`);
         state.songs = response.data;
     } catch (error) {
         console.error('Error fetching song details:', error);
@@ -67,7 +68,7 @@ defineExpose({
     
     <div v-else class="space-y-1">
       <Song 
-        v-for="songItem in state.songs.slice(0, limit || state.songs.length)" 
+        v-for="songItem in state.songs" 
         :key="songItem.id" 
         :song="songItem"
         @play="handlePlaySong"

@@ -7,9 +7,6 @@
 
 <template>
     <div class="flex flex-col w-full p-4 space-y-8">
-        <SongListing :limit="3"/>
-        <PlaylistListing :limit="3"/>
-        <ArtistListing :limit="3"/>
-        <GenreListing :limit="3"/>
+        <PlaylistListing />
     </div>
 </template>

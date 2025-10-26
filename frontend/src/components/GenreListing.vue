@@ -1,18 +1,19 @@
 <script setup>
 import { reactive, onMounted, defineExpose } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-import song from '@/components/Song.vue';
+import ListCard from '@/components/ListCard.vue';
 
 const state = reactive({
-    songs: [],
-    isLoading: true
+  genres: [],
+  isLoading: true
 });
 
-const fetchSongs = async () => {
+const fetchGenres = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/musicFiles`);
-        state.songs = response.data;
+        const response = await axios.get(`http://localhost:3000/api/genres`);
+        state.genres = response.data;
     } catch (error) {
         console.error('Error fetching song details:', error);
     } finally {
@@ -20,17 +21,17 @@ const fetchSongs = async () => {
     }
 };
 
-const refreshSongs = () => {
-    fetchSongs();
+const refreshGenres = () => {
+    fetchGenres();
 };
 
 onMounted(() => {
-    fetchSongs();
+    fetchGenres();
 });
 
 // Expose method to parent component
 defineExpose({
-    refreshSongs
+    refreshGenres
 });
 </script>
 
@@ -39,19 +40,17 @@ defineExpose({
     <h2 class="text-2xl font-bold">My Genre Library</h2>
     
     <div v-if="state.isLoading" class="loading">
-      Loading songs...
+      Loading.genres...
     </div>
     
-    <div v-else-if="state.songs.length === 0" class="empty-state">
-      No songs yet. Upload your first song!
+    <div v-else-if="state.genres.length === 0" class="empty-state">
+      No playlist yet. Upload your first playlist!
     </div>
     
     <div v-else class="m-2">
-      <song 
-        v-for="songItem in state.songs" 
-        :key="songItem.id" 
-        :song="songItem" 
-        class="mb-4"
+      <ListCard type="genre"
+        v-for="genre in state.genres" 
+        :item="genre" 
       />
     </div>
   </div>

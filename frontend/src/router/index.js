@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import UploadView from '../views/UploadView.vue';
-import PlaylistsView from '../views/PlaylistsView.vue';
-import EditPlaylistView from '../views/EditPlaylistView.vue';
-import EditSongView from '../views/EditSongView.vue';
+import PlaylistsView from '../views/PlaylistsView.vue'
 import GenresView from '../views/GenresView.vue';
 import ArtistsView from '../views/ArtistsView.vue';
+import AddPlaylistView from '../views/AddPlaylistView.vue';
+import EachGroupView from '../views/EachGroupView.vue';
 
 
 const routes = createRouter({
@@ -37,14 +37,14 @@ const routes = createRouter({
             component: ArtistsView
         },
         {
-            path: '/edit/playlist/:id',
-            name: 'edit-playlist',
-            component: EditPlaylistView
+            path: '/:group/:id',
+            name: 'each-group',
+            component: EachGroupView,
         },
         {
-            path: '/edit/song/:id',
-            name: 'edit-song',
-            component: EditSongView
+            path: '/add/playlist',
+            name: 'add-playlist',
+            component: AddPlaylistView
         },
     ]
 })
