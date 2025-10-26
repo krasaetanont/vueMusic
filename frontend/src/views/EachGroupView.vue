@@ -50,12 +50,7 @@ defineExpose({
 <template>
   <div class="w-full p-4">
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-bold mb-4">My Music Library</h2>
-      <routerLink 
-        to="/upload" 
-        class="pi pi-plus text-2xl float-right" 
-      >
-      </routerLink>
+      <h2 class="text-2xl font-bold mb-4">My {{ itemType }} Library</h2>
     </div>
     
     <div v-if="state.isLoading" class="loading text-[var(--color-muted)] text-center py-8">

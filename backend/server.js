@@ -607,44 +607,42 @@ app.get('/api/playlists', async (req, res) => {
 });
 
 // Get playlist by ID with musics
-app.get('/api/playlists/:id', async (req, res) => {
+app.get('/api/playlist/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
       SELECT 
-        p.id, p.name,
+        m.id,
+        m.title,
+        m.file_path,
+        m.lyric_path,
+        m.uploaded_at,
         COALESCE(
-          json_agg(DISTINCT jsonb_build_object(
-            'id', m.id, 
-            'title', m.title,
-            'file_path', m.file_path,
-            'lyric_path', m.lyric_path,
-            'uploaded_at', m.uploaded_at,
-            'artists', (
-              SELECT json_agg(jsonb_build_object('id', a.id, 'name', a.name))
-              FROM music_artists ma2
-              JOIN artists a ON ma2.artist_id = a.id
-              WHERE ma2.music_id = m.id
-            ),
-            'genres', (
-              SELECT json_agg(jsonb_build_object('id', g.id, 'name', g.name))
-              FROM music_genres mg2
-              JOIN genres g ON mg2.genre_id = g.id
-              WHERE mg2.music_id = m.id
-            )
-          )) FILTER (WHERE m.id IS NOT NULL), '[]'
-        ) as musics
-      FROM playlists p
-      LEFT JOIN music_playlists mp ON p.id = mp.playlist_id
-      LEFT JOIN musics m ON mp.music_id = m.id
-      WHERE p.id = $1
-      GROUP BY p.id
+          json_agg(DISTINCT jsonb_build_object('id', a.id, 'name', a.name))
+          FILTER (WHERE a.id IS NOT NULL), '[]'
+        ) AS artists,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', g.id, 'name', g.name))
+          FILTER (WHERE g.id IS NOT NULL), '[]'
+        ) AS genres,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', p.id, 'name', p.name))
+          FILTER (WHERE p.id IS NOT NULL), '[]'
+        ) AS playlists
+      FROM musics m
+      INNER JOIN music_playlists mp ON m.id = mp.music_id AND mp.playlist_id = $1
+      LEFT JOIN playlists p ON mp.playlist_id = p.id
+      LEFT JOIN music_artists ma ON m.id = ma.music_id
+      LEFT JOIN artists a ON ma.artist_id = a.id
+      LEFT JOIN music_genres mg ON m.id = mg.music_id
+      LEFT JOIN genres g ON mg.genre_id = g.id
+      GROUP BY m.id
     `, [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Playlist not found' });
     }
-    res.json(result.rows[0]);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });

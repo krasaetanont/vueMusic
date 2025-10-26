@@ -1,8 +1,11 @@
 <script setup>
-import { reactive, onMounted, defineExpose } from 'vue';
-import { useRouter } from 'vue-router';
+import { reactive, onMounted, defineExpose, defineProps } from 'vue';
 import axios from 'axios';
-import song from '@/components/Song.vue';
+import ListCard from '@/components/ListCard.vue';
+
+defineProps({
+  limit: Number
+})
 
 const state = reactive({
     playlists: [],
@@ -14,6 +17,7 @@ const fetchPlaylists = async () => {
     try {
         const response = await axios.get(`http://localhost:3000/api/playlists`);
         state.playlists = response.data;
+        // console.log('Fetched playlists:', state.playlists);
     } catch (error) {
         console.error('Error fetching song details:', error);
     } finally {
@@ -55,11 +59,10 @@ defineExpose({
     </div>
     
     <div v-else class="m-2">
-      <div v-for="playlistItem in state.playlists" 
-        :key="playlistItem.id" 
-        class="mb-4"
-      >
-      </div>
+      <ListCard type="playlist"
+        v-for="playlist in state.playlists.slice(0, limit || state.playlists.length)"
+        :item="playlist"
+      />
     </div>
   </div>
 </template>
