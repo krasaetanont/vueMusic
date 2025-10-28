@@ -606,7 +606,7 @@ app.get('/api/playlists', async (req, res) => {
   }
 });
 
-// Get playlist by ID with musics
+// Get musics by playlist id
 app.get('/api/playlist/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -640,7 +640,7 @@ app.get('/api/playlist/:id', async (req, res) => {
     `, [id]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Playlist not found' });
+      return res.json({});
     }
     res.json(result.rows);
   } catch (err) {

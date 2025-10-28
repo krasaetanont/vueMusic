@@ -53,7 +53,7 @@ defineExpose({
       <h2 class="text-2xl font-bold mb-4">My {{ itemType }} Library</h2>
       <RouterLink
         v-if="itemType === 'playlist'"
-        to="/add/to-playlist/{{ itemId }}"
+        :to="`/add/to-playlist/${itemId}`"
         class="block"
         ><i class="pi pi-plus"></i>
       </RouterLink>
