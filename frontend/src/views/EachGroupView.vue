@@ -51,6 +51,12 @@ defineExpose({
   <div class="w-full p-4">
     <div class="flex justify-between items-center">
       <h2 class="text-2xl font-bold mb-4">My {{ itemType }} Library</h2>
+      <RouterLink
+        v-if="itemType === 'playlist'"
+        to="/add/to-playlist"
+        class="block"
+        ><i class="pi pi-plus"></i>
+      </RouterLink>
     </div>
     
     <div v-if="state.isLoading" class="loading text-[var(--color-muted)] text-center py-8">

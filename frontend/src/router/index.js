@@ -6,6 +6,7 @@ import GenresView from '../views/GenresView.vue';
 import ArtistsView from '../views/ArtistsView.vue';
 import AddPlaylistView from '../views/AddPlaylistView.vue';
 import EachGroupView from '../views/EachGroupView.vue';
+import AddToPlaylistView from '../views/AddToPlaylistView.vue';
 
 
 const routes = createRouter({
@@ -46,6 +47,11 @@ const routes = createRouter({
             name: 'add-playlist',
             component: AddPlaylistView
         },
+        {
+            path: '/add/to-playlist',
+            name: 'add-to-playlist',
+            component: AddToPlaylistView
+        }
     ]
 })
 
