@@ -48,7 +48,7 @@ const routes = createRouter({
             component: AddPlaylistView
         },
         {
-            path: '/add/to-playlist',
+            path: '/add/to-playlist/:id',
             name: 'add-to-playlist',
             component: AddToPlaylistView
         }
