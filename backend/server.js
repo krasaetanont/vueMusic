@@ -158,6 +158,95 @@ app.post('/api/upload', upload.single('musicFile'), async (req, res) => {
   }
 });
 
+// Upload lyric text for a music item and save as HTML file
+app.post('/api/upload/lyric/:id', express.text({ type: '*/*' }), async (req, res) => {
+  const client = await pool.connect();
+  const { id } = req.params;
+  const text = req.body;
+
+  if (!text || typeof text !== 'string') {
+    client.release();
+    return res.status(400).json({ error: 'Lyric text is required' });
+  }
+
+  const filename = `${id}.html`;
+  const filePath = `/lyrics/${filename}`;
+  const fullPath = path.join(lyricsDir, filename);
+
+  try {
+    // Write lyric HTML file (overwrites if exists)
+    fs.writeFileSync(fullPath, text, 'utf8');
+
+    // Update database with lyric_path
+    const result = await client.query(
+      'UPDATE musics SET lyric_path = $1 WHERE id = $2 RETURNING *',
+      [filePath, id]
+    );
+
+    if (result.rows.length === 0) {
+      // music id not found — remove saved file
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+      return res.status(404).json({ error: 'Music not found' });
+    }
+
+    res.status(200).json({ message: 'Lyric uploaded', music: result.rows[0] });
+  } catch (err) {
+    console.error('Lyric upload error:', err);
+    if (fs.existsSync(fullPath)) {
+      try { fs.unlinkSync(fullPath); } catch (e) { /* ignore cleanup error */ }
+    }
+    res.status(500).json({ error: 'Failed to upload lyric' });
+  } finally {
+    client.release();
+  }
+});
+
+// Delete lyric file and clear lyric_path for a music item
+app.delete('/api/delete/lyric/:id', async (req, res) => {
+  const client = await pool.connect();
+  const { id } = req.params;
+  const filename = `${id}.html`;
+  const fullPath = path.join(lyricsDir, filename);
+
+  try {
+    await client.query('BEGIN');
+
+    // Ensure music exists
+    const musicResult = await client.query('SELECT id, lyric_path FROM musics WHERE id = $1', [id]);
+    if (musicResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Music not found' });
+    }
+
+    // Clear lyric_path in DB
+    const updateResult = await client.query(
+      'UPDATE musics SET lyric_path = NULL WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    // Delete file if it exists
+    if (fs.existsSync(fullPath)) {
+      try {
+        fs.unlinkSync(fullPath);
+      } catch (fsErr) {
+        // If file deletion fails, rollback and surface error
+        await client.query('ROLLBACK');
+        console.error('Failed to delete lyric file:', fsErr);
+        return res.status(500).json({ error: 'Failed to delete lyric file' });
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: 'Lyric deleted', music: updateResult.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting lyric:', err);
+    res.status(500).json({ error: 'Failed to delete lyric' });
+  } finally {
+    client.release();
+  }
+});
+
 // ==================== MUSIC ENDPOINTS ====================
 
 // Get all musics with their artists and genres

@@ -17,6 +17,12 @@ const lyrics = ref('');
 const isRepeat = ref(false);
 const isShuffle = ref(false);
 
+// add lyric editor state
+const showLyricEditor = ref(false);
+const newLyricText = ref('');
+const isSubmittingLyric = ref(false);
+const isDeletingLyric = ref(false);
+
 // Initialize audio element
 onMounted(() => {
     audio.value = new Audio();
@@ -85,6 +91,7 @@ const playSong = async (song, index = null) => {
         try {
             const response = await axios.get(`http://localhost:3000${song.lyric_path}`);
             lyrics.value = response.data;
+            showLyricEditor.value = false;
         } catch (error) {
             lyrics.value = 'Lyrics not available';
         }
@@ -250,6 +257,74 @@ const getGenreNames = (song) => {
     }
     return song.genre || '';
 };
+
+// Refresh lyrics by reloading music record and file content
+const refreshLyrics = async () => {
+    if (!currentSong.value || !currentSong.value.id) return;
+    try {
+        const res = await axios.get(`http://localhost:3000/api/musics/${currentSong.value.id}`);
+        const updated = res.data;
+        // update currentSong lyric_path and lyrics content
+        currentSong.value.lyric_path = updated.lyric_path;
+        if (updated.lyric_path) {
+            const r = await axios.get(`http://localhost:3000${updated.lyric_path}`);
+            lyrics.value = r.data;
+        } else {
+            lyrics.value = 'No lyrics available for this song';
+        }
+    } catch (err) {
+        console.error('Failed to refresh lyrics:', err);
+        lyrics.value = 'Lyrics not available';
+    } finally {
+        showLyricEditor.value = false;
+        newLyricText.value = '';
+    }
+};
+
+// open editor
+const openLyricEditor = () => {
+    showLyricEditor.value = true;
+    newLyricText.value = '';
+};
+
+// submit new lyric text
+const submitLyric = async () => {
+    if (!currentSong.value || !currentSong.value.id) return;
+    if (!newLyricText.value || newLyricText.value.trim() === '') {
+        alert('Please enter lyric text');
+        return;
+    }
+    isSubmittingLyric.value = true;
+    try {
+        await axios.post(
+            `http://localhost:3000/api/upload/lyric/${currentSong.value.id}`,
+            newLyricText.value,
+            { headers: { 'Content-Type': 'text/plain' } }
+        );
+        await refreshLyrics();
+    } catch (err) {
+        console.error('Failed to upload lyric:', err);
+        alert('Failed to upload lyric');
+    } finally {
+        isSubmittingLyric.value = false;
+    }
+};
+
+// delete lyric
+const deleteLyric = async () => {
+    if (!currentSong.value || !currentSong.value.id) return;
+    if (!confirm('Delete lyric for this song?')) return;
+    isDeletingLyric.value = true;
+    try {
+        await axios.delete(`http://localhost:3000/api/delete/lyric/${currentSong.value.id}`);
+        await refreshLyrics();
+    } catch (err) {
+        console.error('Failed to delete lyric:', err);
+        alert('Failed to delete lyric');
+    } finally {
+        isDeletingLyric.value = false;
+    }
+};
 </script>
 
 <template>
@@ -326,7 +401,63 @@ const getGenreNames = (song) => {
                             <p class="text-sm text-[var(--color-muted)]">{{ currentSong ? getArtistNames(currentSong) : '' }}</p>
                         </div>
                         <div class="lyrics-content">
-                            {{ lyrics }}
+                            <!-- when there are no lyrics show Add Lyric button -->
+                            <div v-if="lyrics === 'No lyrics available for this song'">
+                                <p class="text-[var(--color-muted)] mb-4">{{ lyrics }}</p>
+                                <button class="icon-button" @click="openLyricEditor">
+                                    <i class="pi pi-plus"></i> Add Lyric
+                                </button>
+
+                                <!-- large textarea editor -->
+                                <div v-if="showLyricEditor" class="mt-4">
+                                    <textarea
+                                        v-model="newLyricText"
+                                        rows="12"
+                                        class="w-full p-3 border rounded-md bg-[var(--color-background)] text-[var(--color-text)]"
+                                        placeholder="Enter lyrics or HTML content here..."
+                                    ></textarea>
+                                    <div class="mt-3 flex gap-2">
+                                        <button
+                                            class="btn btn-primary"
+                                            :disabled="isSubmittingLyric"
+                                            @click="submitLyric"
+                                        >
+                                            {{ isSubmittingLyric ? 'Saving...' : 'Enter' }}
+                                        </button>
+                                        <button class="btn" @click="showLyricEditor = false" :disabled="isSubmittingLyric">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- when lyrics exist show content and Delete button -->
+                            <div v-else>
+                                <div class="mb-4" v-html="lyrics"></div>
+
+                                <div class="flex gap-2">
+                                    <button v-if="currentSong && currentSong.lyric_path" class="icon-button text-red-500" :disabled="isDeletingLyric" @click="deleteLyric">
+                                        <i class="pi pi-trash"></i> {{ isDeletingLyric ? 'Deleting...' : 'Delete Lyric' }}
+                                    </button>
+                                    <!-- also allow editing existing lyric (reopen editor populated with current text) -->
+                                    <button v-if="currentSong && currentSong.lyric_path" class="icon-button" @click="() => { showLyricEditor = true; newLyricText = lyrics; }">
+                                        <i class="pi pi-pencil"></i> Edit Lyric
+                                    </button>
+
+                                    <!-- show textarea editor when editing an existing lyric -->
+                                    <div v-if="showLyricEditor" class="w-full mt-3">
+                                        <textarea
+                                            v-model="newLyricText"
+                                            rows="12"
+                                            class="w-full p-3 border rounded-md bg-[var(--color-background)] text-[var(--color-text)]"
+                                        ></textarea>
+                                        <div class="mt-3 flex gap-2">
+                                            <button class="btn btn-primary" :disabled="isSubmittingLyric" @click="submitLyric">
+                                                {{ isSubmittingLyric ? 'Saving...' : 'Enter' }}
+                                            </button>
+                                            <button class="btn" @click="showLyricEditor = false" :disabled="isSubmittingLyric">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
