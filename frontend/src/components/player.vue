@@ -498,9 +498,6 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                             <div class="song-title">{{ currentSong.title }}</div>
                             <div class="song-artist">{{ getArtistNames(currentSong) }}</div>
                         </div>
-                        <button class="icon-button ml-4" title="Add to favorites">
-                            <i class="pi pi-heart"></i>
-                        </button>
                     </div>
                     <div v-else class="song-details">
                         <div class="song-cover">
