@@ -488,12 +488,13 @@ app.get('/api/artist/:id', async (req, res) => {
           FILTER (WHERE p.id IS NOT NULL), '[]'
         ) AS playlists
       FROM musics m
-      LEFT JOIN music_artists ma ON m.id = ma.music_id AND ma.artist_id = $1
+      LEFT JOIN music_artists ma ON m.id = ma.music_id
       LEFT JOIN artists a ON ma.artist_id = a.id
       LEFT JOIN music_genres mg ON m.id = mg.music_id
       LEFT JOIN genres g ON mg.genre_id = g.id
       LEFT JOIN music_playlists mp ON m.id = mp.music_id
       LEFT JOIN playlists p ON mp.playlist_id = p.id
+      WHERE ma.artist_id = $1
       GROUP BY m.id
     `, [id]);
 
@@ -602,10 +603,11 @@ app.get('/api/genre/:id', async (req, res) => {
       FROM musics m
       LEFT JOIN music_artists ma ON m.id = ma.music_id
       LEFT JOIN artists a ON ma.artist_id = a.id
-      LEFT JOIN music_genres mg ON m.id = mg.music_id AND mg.genre_id = $1
+      LEFT JOIN music_genres mg ON m.id = mg.music_id
       LEFT JOIN genres g ON mg.genre_id = g.id
       LEFT JOIN music_playlists mp ON m.id = mp.music_id
       LEFT JOIN playlists p ON mp.playlist_id = p.id
+      WHERE mg.genre_id = $1
       GROUP BY m.id
     `, [id]);
 
