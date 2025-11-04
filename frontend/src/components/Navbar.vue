@@ -11,7 +11,7 @@ const isActiveLink = (routePath) => {
     <RouterLink
       to="/"
       :class="[isActiveLink('/')
-        ? 'bg-accent-hover text-[var(--color-accent)]'
+        ? 'bg-accent-hover text-accent'
         : 'hover:bg-accent hover:text-white', 'text-white',
           'px-3',
           'py-2',
@@ -21,7 +21,7 @@ const isActiveLink = (routePath) => {
     <RouterLink
       to="/playlists"
       :class="[isActiveLink('/playlists')
-        ? 'bg-accent-hover text-[var(--color-accent)]'
+        ? 'bg-accent-hover text-accent'
         : 'hover:bg-accent hover:text-white', 'text-white',
           'px-3',
           'py-2',
@@ -31,7 +31,7 @@ const isActiveLink = (routePath) => {
     <RouterLink
       to="/Artists"
       :class="[isActiveLink('/Artists')
-        ? 'bg-accent-hover text-[var(--color-accent)]'
+        ? 'bg-accent-hover text-accent'
         : 'hover:bg-accent hover:text-white', 'text-white',
           'px-3',
           'py-2',
@@ -41,7 +41,7 @@ const isActiveLink = (routePath) => {
     <RouterLink
       to="/genres"
       :class="[isActiveLink('/genres')
-        ? 'bg-accent-hover text-[var(--color-accent)]'
+        ? 'bg-accent-hover text-accent'
         : 'hover:bg-accent hover:text-white', 'text-white',
           'px-3',
           'py-2',
@@ -51,7 +51,7 @@ const isActiveLink = (routePath) => {
     <RouterLink
       to="/musics"
       :class="[isActiveLink('/playlists')
-        ? 'bg-accent-hover text-[var(--color-accent)]'
+        ? 'bg-accent-hover text-accent'
         : 'hover:bg-accent hover:text-white', 'text-white',
           'px-3',
           'py-2',

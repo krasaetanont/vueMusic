@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
       <div v-if="showResults" class="search-results">
         <!-- No Results -->
         <div v-if="!isLoading && !hasResults && searchQuery.trim()" class="empty-results">
-          <i class="pi pi-search text-4xl mb-3 text-[var(--color-muted)]"></i>
+          <i class="pi pi-search text-4xl mb-3 text-muted"></i>
           <p>No results found for "{{ searchQuery }}"</p>
         </div>
 

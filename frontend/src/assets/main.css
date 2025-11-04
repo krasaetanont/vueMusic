@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "primeicons/primeicons.css";
 
-@theme {
+:root {
   --color-background: #0d0d0d;
   --color-surface: #1a1a1a;
   --color-border: #2a2a2a;
@@ -9,7 +9,7 @@
   --color-text: #e5e5e5;
   --color-text-dark: #EA428B;
   --color-accent: #CC9CDF; 
-  --color-accent-hover: #662F89
+  --color-accent-hover: #662F89;
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -24,22 +24,51 @@
 
 @layer base {
   body {
-    @apply bg-[var(--color-background)] text-[var(--color-text)] font-sans;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
   }
 
   a {
-    @apply text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] transition-colors;
+    color: var(--color-accent);
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--color-accent-hover);
   }
 
   button {
-    @apply bg-[var(--color-surface)] text-[var(--color-text)] rounded-md px-3 py-2 shadow-sm hover:bg-[var(--color-border)] transition-all;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    box-shadow: var(--shadow-sm);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  button:hover {
+    background-color: var(--color-border);
   }
 
   input, textarea, select {
-    @apply bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] rounded-md px-3 py-2 focus:outline-none focus:border-[var(--color-accent)];
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    outline: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(204,156,223,0.12);
   }
 
   hr {
-    @apply border-[var(--color-border)];
+    border: none;
+    border-top: 1px solid var(--color-border);
   }
 }

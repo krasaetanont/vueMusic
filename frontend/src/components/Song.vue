@@ -79,37 +79,61 @@ onClickOutside(menuRef, () => showMenu.value = false)
 </script>
 
 <template>
-    <div class="song-item flex flex-row items-center justify-between p-3 rounded-lg hover:bg-surface cursor-pointer transition-colors" @click="handlePlay">
-        <div>
-            <h3 class="text-lg font-semibold text-text mb-1"> {{ song.title }}</h3>
-            <div class="text-sm text-muted">
-                <span>{{ getArtistNames() }}</span>
-                <span v-if="getGenreNames()"> • {{ getGenreNames() }}</span>
-            </div>
-        </div>
-        <div 
-            v-if="itemType == 'playlist'"
-            ref="menuRef">
-            <button
-                @click.stop="toggleMenu"
-                class="p-2 rounded-full hover:bg-surface transition"
-            >
-                <i class="pi pi-ellipsis-v right-0"></i>
-            </button>
-            <!-- dropdown menu -->
-            <div 
-                v-if="showMenu" 
-                class="absolute right-0 mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg z-10"
-            >
-            <button
-                @click="onDelete"
-                class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white"
-            >
-                <i class="pi pi-trash mr-2"></i> Delete
-
-            </button>
-            </div>
-        </div>
+  <div
+    class="song-item relative flex flex-row items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ease-in-out"
+    @click="handlePlay"
+  >
+    <div>
+      <h3 class="song-title text-lg font-semibold text-text mb-1 transition-colors duration-200">
+        {{ song.title }}
+      </h3>
+      <div class="text-sm text-muted">
+        <span>{{ getArtistNames() }}</span>
+        <span v-if="getGenreNames()"> • {{ getGenreNames() }}</span>
+      </div>
     </div>
-    
+
+    <div v-if="itemType == 'playlist'" ref="menuRef" class="relative">
+      <button
+        @click.stop="toggleMenu"
+        class="p-2 rounded-full hover:bg-surface transition"
+      >
+        <i class="pi pi-ellipsis-v text-muted"></i>
+      </button>
+
+      <!-- dropdown menu -->
+      <div
+        v-if="showMenu"
+        class="absolute right-0 mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg z-10"
+      >
+        <button
+          @click="onDelete"
+          class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"
+        >
+          <i class="pi pi-trash mr-2"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.song-item {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  will-change: transform, box-shadow;
+}
+
+/* subtle lift + shadow + background on hover */
+.song-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+}
+
+/* change title color on hover */
+.song-item:hover .song-title {
+  color: var(--color-text-dark);
+  transition: color 0.12s ease;
+}
+</style>
+
