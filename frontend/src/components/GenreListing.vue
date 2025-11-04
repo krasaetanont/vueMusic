@@ -12,7 +12,7 @@ const state = reactive({
 const fetchGenres = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/genres`);
+        const response = await axios.get(`/api/genres`);
         state.genres = response.data;
     } catch (error) {
         console.error('Error fetching song details:', error);

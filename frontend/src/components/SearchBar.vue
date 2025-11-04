@@ -57,10 +57,10 @@ const performSearch = async (query) => {
 
   try {
     const [songsRes, artistsRes, genresRes, playlistsRes] = await Promise.all([
-      axios.get('http://localhost:3000/api/musics'),
-      axios.get('http://localhost:3000/api/artists'),
-      axios.get('http://localhost:3000/api/genres'),
-      axios.get('http://localhost:3000/api/playlists')
+      axios.get('/api/musics'),
+      axios.get('/api/artists'),
+      axios.get('/api/genres'),
+      axios.get('/api/playlists')
     ]);
 
     const lowerQuery = query.toLowerCase();

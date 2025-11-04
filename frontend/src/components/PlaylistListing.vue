@@ -15,7 +15,7 @@ const state = reactive({
 const fetchPlaylists = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/playlists`);
+        const response = await axios.get(`/api/playlists`);
         state.playlists = response.data;
         // console.log('Fetched playlists:', state.playlists);
     } catch (error) {

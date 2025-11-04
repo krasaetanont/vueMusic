@@ -18,7 +18,7 @@ const state = reactive({
 const fetchSongs = async () => {
     state.isLoading = true;
     try {
-        const response = await axios.get(`http://localhost:3000/api/${itemType}/${itemId}`);
+        const response = await axios.get(`/api/${itemType}/${itemId}`);
         state.songs = response.data;
     } catch (error) {
         console.error('Error fetching song details:', error);

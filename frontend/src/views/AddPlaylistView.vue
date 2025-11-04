@@ -23,7 +23,7 @@ const createPlaylist = async () => {
   isCreating.value = true;
 
   try {
-    const response = await axios.post('http://localhost:3000/api/playlists', {
+    const response = await axios.post('/api/playlists', {
       name: playlistName.value.trim()
     });
 

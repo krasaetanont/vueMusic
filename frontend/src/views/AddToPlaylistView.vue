@@ -25,10 +25,10 @@ const fetchData = async () => {
   state.isLoading = true;
   try {
     // Fetch playlist songs
-    const playlistResponse = await axios.get(`http://localhost:3000/api/playlist/${playlistId}`);
+    const playlistResponse = await axios.get(`/api/playlist/${playlistId}`);
     state.playlistSongs = Array.isArray(playlistResponse.data) ? playlistResponse.data: [];
     // Fetch all songs
-    const allSongsResponse = await axios.get('http://localhost:3000/api/musics');
+    const allSongsResponse = await axios.get('/api/musics');
     state.allSongs = allSongsResponse.data;
     
     // Get playlist name (from the first song's playlists array)

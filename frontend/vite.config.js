@@ -24,7 +24,8 @@ export default defineConfig({
     },
     cors: true,
     proxy: {
-      '/api': 'http://localhost:3000'
-    }
+      '/api': 'http://backend:3000'
+    },
+    allowedHosts: ['music.nijserver.link']
   }
 })

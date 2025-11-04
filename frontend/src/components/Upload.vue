@@ -373,7 +373,8 @@
     width: 100%;
   }
 }
-</style><script setup>
+</style>
+<script setup>
 import { ref, defineEmits } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -447,7 +448,7 @@ const handleUpload = async () => {
     data.append('genre', formData.value.genre);
     data.append('musicFile', selectedFile.value);
 
-    const response = await axios.post('http://localhost:3000/api/upload', data, {
+    const response = await axios.post('/api/upload', data, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

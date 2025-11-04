@@ -6,7 +6,7 @@ const fs = require('fs');
 const { Pool } = require('pg');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
 
 // Ensure upload directories exist
 const musicDir = '/musicFiles';
@@ -21,7 +21,7 @@ if (!fs.existsSync(lyricsDir)) {
 
 // Database configuration
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'db',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'mysecret',
   database: process.env.DB_NAME || 'musicdb',
