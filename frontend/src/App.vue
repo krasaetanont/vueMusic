@@ -3,6 +3,7 @@ import { provide } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Player from './components/Player.vue';
+import SearchBar from './components/SearchBar.vue';
 
 // Provide a global play function
 const playSong = (song) => {
@@ -15,15 +16,159 @@ provide('playSong', playSong);
 </script>
 
 <template>
-  <RouterLink 
-    to="/"
-    class="flex mt-4 ml-4 mb-4 items-center">
-    <i class="pi pi-sparkles" style="font-size: 2.5rem"></i>
-    <h1 class="text-2xl mx-4">sparkleMusic</h1>
-  </RouterLink>
-  <div class="flex" style="margin-bottom: 120px;">
-    <router-view />
-    <Navbar />
+  <div class="app-header">
+    <RouterLink 
+      to="/"
+      class="logo-link">
+      <i class="pi pi-sparkles logo-icon"></i>
+      <h1 class="logo-text">sparkleMusic</h1>
+    </RouterLink>
+    <div class="search-wrapper">
+      <SearchBar />
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="content-area">
+      <router-view />
+    </div>
+    <aside class="sidebar">
+      <Navbar />
+    </aside>
   </div>
   <Player />
 </template>
+
+<style scoped>
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 24px;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-background);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--color-text);
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+
+.logo-icon {
+  font-size: 2.5rem;
+  color: var(--color-accent);
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  margin: 0 0 0 16px;
+  font-weight: 600;
+}
+
+.search-wrapper {
+  flex: 1;
+  max-width: 600px;
+  min-width: 0;
+}
+
+.main-content {
+  display: flex;
+  min-height: calc(100vh - 200px);
+  margin-bottom: 120px;
+}
+
+.content-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 200px;
+  padding: 16px;
+  border-left: 1px solid var(--color-border);
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+  }
+
+  .sidebar {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo-link {
+    order: 1;
+  }
+
+  .search-wrapper {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .main-content {
+    flex-direction: column-reverse;
+    margin-bottom: 140px;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-left: none;
+    border-bottom: 1px solid var(--color-border);
+    position: static;
+    padding: 12px;
+  }
+
+  .logo-icon {
+    font-size: 2rem;
+  }
+
+  .logo-text {
+    font-size: 1.125rem;
+    margin-left: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 12px;
+  }
+
+  .logo-icon {
+    font-size: 1.75rem;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+}
+</style>
