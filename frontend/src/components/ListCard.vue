@@ -19,7 +19,7 @@ const props = defineProps({
 <template>
     <div class="">
         <RouterLink :to="`/${type}/${item.id}`" class="no-underline" :artist="item">
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-2">{{ item.name }}</h3>
+            <h3 class="text-lg font-semibold text-text mb-2">{{ item.name }}</h3>
         </RouterLink>
     </div>
 </template>

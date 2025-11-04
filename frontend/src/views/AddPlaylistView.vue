@@ -59,7 +59,7 @@ const cancel = () => {
   <div class="w-full p-4 max-w-2xl">
     <div class="mb-6">
       <h2 class="text-2xl font-bold mb-2">Create New Playlist</h2>
-      <p class="text-[var(--color-muted)] text-sm">Enter a name for your new playlist</p>
+      <p class="text-muted text-sm">Enter a name for your new playlist</p>
     </div>
 
     <form @submit.prevent="createPlaylist" class="space-y-4">

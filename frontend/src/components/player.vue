@@ -372,11 +372,11 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                     <div v-if="showQueue" class="modal-body">
                         <div class="queue-header">
                             <h3>Playing from Queue</h3>
-                            <p class="text-sm text-[var(--color-muted)]">{{ queue.length }} songs</p>
+                            <p class="text-sm text-muted">{{ queue.length }} songs</p>
                         </div>
                         
                         <div v-if="queue.length === 0" class="empty-state">
-                            <i class="pi pi-music text-4xl mb-4 text-[var(--color-muted)]"></i>
+                            <i class="pi pi-music text-4xl mb-4 text-muted"></i>
                             <p>No songs in queue</p>
                         </div>
                         
@@ -391,9 +391,9 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                             >
                                 <div class="queue-item-number">
                                     <span v-if="currentSong && currentSong.id === song.id && isPlaying">
-                                        <i class="pi pi-volume-up text-[var(--color-accent)]"></i>
+                                        <i class="pi pi-volume-up text-accent"></i>
                                     </span>
-                                    <span v-else class="text-[var(--color-muted)]">{{ index + 1 }}</span>
+                                    <span v-else class="text-muted">{{ index + 1 }}</span>
                                 </div>
                                 <div class="queue-item-info">
                                     <div class="queue-item-title">{{ song.title }}</div>
@@ -410,12 +410,12 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                     <div v-if="showLyrics" class="modal-body lyrics-container">
                         <div class="lyrics-header">
                             <h3>{{ currentSong?.title || 'No song playing' }}</h3>
-                            <p class="text-sm text-[var(--color-muted)]">{{ currentSong ? getArtistNames(currentSong) : '' }}</p>
+                            <p class="text-sm text-muted">{{ currentSong ? getArtistNames(currentSong) : '' }}</p>
                         </div>
                         <div class="lyrics-content">
                             <!-- when there are no lyrics show Add Lyric button -->
                             <div v-if="lyrics === 'No lyrics available for this song'">
-                                <p class="text-[var(--color-muted)] mb-4">{{ lyrics }}</p>
+                                <p class="text-muted mb-4">{{ lyrics }}</p>
                                 <button class="icon-button" @click="openLyricEditor">
                                     <i class="pi pi-plus"></i> Add Lyric
                                 </button>
@@ -425,7 +425,7 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                                     <textarea
                                         v-model="newLyricText"
                                         rows="12"
-                                        class="w-full p-3 border rounded-md bg-[var(--color-background)] text-[var(--color-text)]"
+                                        class="w-full p-3 border rounded-md bg-background text-text"
                                         placeholder="Enter lyrics or HTML content here..."
                                     ></textarea>
                                     <div class="mt-3 flex gap-2">
@@ -458,7 +458,7 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                                         <textarea
                                             v-model="newLyricText"
                                             rows="12"
-                                            class="w-full p-3 border rounded-md bg-[var(--color-background)] text-[var(--color-text)]"
+                                            class="w-full p-3 border rounded-md bg-background text-text"
                                         ></textarea>
                                         <div class="mt-3 flex gap-2">
                                             <button class="btn btn-primary" :disabled="isSubmittingLyric" @click="submitLyric">
@@ -504,7 +504,7 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                             <i class="pi pi-music"></i>
                         </div>
                         <div class="song-text">
-                            <div class="song-title text-[var(--color-muted)]">No song playing</div>
+                            <div class="song-title text-muted">No song playing</div>
                         </div>
                     </div>
                 </div>
@@ -558,7 +558,7 @@ const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric
                     
                     <div class="time-display">
                         <span>{{ formatTime(currentTime) }}</span>
-                        <span class="text-[var(--color-muted)]">/</span>
+                        <span class="text-muted">/</span>
                         <span>{{ formatTime(duration) }}</span>
                     </div>
                 </div>

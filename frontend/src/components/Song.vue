@@ -81,8 +81,8 @@ onClickOutside(menuRef, () => showMenu.value = false)
 <template>
     <div class="song-item flex flex-row items-center justify-between p-3 rounded-lg hover:bg-surface cursor-pointer transition-colors" @click="handlePlay">
         <div>
-            <h3 class="text-lg font-semibold text-[var(--color-text)] mb-1">{{ song.title }}</h3>
-            <div class="text-sm text-[var(--color-muted)]">
+            <h3 class="text-lg font-semibold text-text mb-1"> {{ song.title }}</h3>
+            <div class="text-sm text-muted">
                 <span>{{ getArtistNames() }}</span>
                 <span v-if="getGenreNames()"> • {{ getGenreNames() }}</span>
             </div>
@@ -92,14 +92,14 @@ onClickOutside(menuRef, () => showMenu.value = false)
             ref="menuRef">
             <button
                 @click.stop="toggleMenu"
-                class="p-2 rounded-full hover:bgj-[var(--color-hover)] transition"
+                class="p-2 rounded-full hover:bg-surface transition"
             >
                 <i class="pi pi-ellipsis-v right-0"></i>
             </button>
             <!-- dropdown menu -->
             <div 
                 v-if="showMenu" 
-                class="absolute right-0 mt-2 w-40 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg z-10"
+                class="absolute right-0 mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg z-10"
             >
             <button
                 @click="onDelete"

@@ -84,11 +84,11 @@ const Name = computed(() => {
       </RouterLink>
     </div>
     
-    <div v-if="state.isLoading" class="loading text-[var(--color-muted)] text-center py-8">
+    <div v-if="state.isLoading" class="loading text-muted text-center py-8">
       Loading songs...
     </div>
     
-    <div v-else-if="state.songs.length === 0" class="empty-state text-[var(--color-muted)] text-center py-8">
+    <div v-else-if="state.songs.length === 0" class="empty-state text-muted text-center py-8">
       No songs yet. Upload your first song!
     </div>
     
