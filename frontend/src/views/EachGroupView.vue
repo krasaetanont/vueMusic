@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted, defineExpose, inject, defineProps, computed } from 'vue'; // added computed
+import { reactive, onMounted, defineExpose, inject, computed } from 'vue'; // added computed
 import axios from 'axios';
 import Song from '@/components/Song.vue';
 import { useRoute } from 'vue-router';
@@ -20,7 +20,6 @@ const fetchSongs = async () => {
     try {
         const response = await axios.get(`http://localhost:3000/api/${itemType}/${itemId}`);
         state.songs = response.data;
-        console.log('Fetched songs:', state.songs[0].artists[0].name);
     } catch (error) {
         console.error('Error fetching song details:', error);
     } finally {
@@ -99,6 +98,7 @@ const Name = computed(() => {
         :key="songItem.id" 
         :song="songItem"
         @play="handlePlaySong"
+        @removed="refreshSongs"  
       />
     </div>
   </div>

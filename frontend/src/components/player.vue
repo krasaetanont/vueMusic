@@ -2,6 +2,9 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const api = axios.create({ baseURL: API_BASE });
+
 const currentSong = ref(null);
 const audio = ref(null);
 const isPlaying = ref(false);
@@ -75,7 +78,7 @@ const playSong = async (song, index = null) => {
     }
     
     if (audio.value) {
-        audio.value.src = `http://localhost:3000${song.file_path}`;
+        audio.value.src = `${API_BASE}${song.file_path}`;
         audio.value.load();
         try {
             await audio.value.play();
@@ -89,7 +92,7 @@ const playSong = async (song, index = null) => {
     // Fetch lyrics if available
     if (song.lyric_path) {
         try {
-            const response = await axios.get(`http://localhost:3000${song.lyric_path}`);
+            const response = await api.get(song.lyric_path, { responseType: 'text' });
             lyrics.value = response.data;
             showLyricEditor.value = false;
         } catch (error) {
@@ -107,7 +110,7 @@ const playSong = async (song, index = null) => {
 
 const loadQueue = async () => {
     try {
-        const response = await axios.get('http://localhost:3000/api/musics');
+        const response = await api.get('/api/musics');
         queue.value = response.data;
         
         // Set current index if we have a current song
@@ -262,12 +265,12 @@ const getGenreNames = (song) => {
 const refreshLyrics = async () => {
     if (!currentSong.value || !currentSong.value.id) return;
     try {
-        const res = await axios.get(`http://localhost:3000/api/musics/${currentSong.value.id}`);
+        const res = await api.get(`/api/musics/${currentSong.value.id}`);
         const updated = res.data;
         // update currentSong lyric_path and lyrics content
         currentSong.value.lyric_path = updated.lyric_path;
         if (updated.lyric_path) {
-            const r = await axios.get(`http://localhost:3000${updated.lyric_path}`);
+            const r = await api.get(updated.lyric_path, { responseType: 'text' });
             lyrics.value = r.data;
         } else {
             lyrics.value = 'No lyrics available for this song';
@@ -287,6 +290,12 @@ const openLyricEditor = () => {
     newLyricText.value = '';
 };
 
+// prepare to edit existing lyric
+const prepareEditLyric = () => {
+    showLyricEditor.value = true;
+    newLyricText.value = lyrics.value || '';
+};
+
 // submit new lyric text
 const submitLyric = async () => {
     if (!currentSong.value || !currentSong.value.id) return;
@@ -296,8 +305,8 @@ const submitLyric = async () => {
     }
     isSubmittingLyric.value = true;
     try {
-        await axios.post(
-            `http://localhost:3000/api/upload/lyric/${currentSong.value.id}`,
+        await api.post(
+            `/api/upload/lyric/${currentSong.value.id}`,
             newLyricText.value,
             { headers: { 'Content-Type': 'text/plain' } }
         );
@@ -316,7 +325,7 @@ const deleteLyric = async () => {
     if (!confirm('Delete lyric for this song?')) return;
     isDeletingLyric.value = true;
     try {
-        await axios.delete(`http://localhost:3000/api/delete/lyric/${currentSong.value.id}`);
+        await api.delete(`/api/delete/lyric/${currentSong.value.id}`);
         await refreshLyrics();
     } catch (err) {
         console.error('Failed to delete lyric:', err);
@@ -325,6 +334,9 @@ const deleteLyric = async () => {
         isDeletingLyric.value = false;
     }
 };
+
+// helper computed to determine existence of lyric
+const hasLyrics = computed(() => !!(currentSong.value && currentSong.value.lyric_path));
 </script>
 
 <template>
@@ -434,11 +446,10 @@ const deleteLyric = async () => {
                                 <div class="mb-4" v-html="lyrics"></div>
 
                                 <div class="flex gap-2">
-                                    <button v-if="currentSong && currentSong.lyric_path" class="icon-button text-red-500" :disabled="isDeletingLyric" @click="deleteLyric">
+                                    <button v-if="hasLyrics" class="icon-button text-red-500" :disabled="isDeletingLyric" @click="deleteLyric">
                                         <i class="pi pi-trash"></i> {{ isDeletingLyric ? 'Deleting...' : 'Delete Lyric' }}
                                     </button>
-                                    <!-- also allow editing existing lyric (reopen editor populated with current text) -->
-                                    <button v-if="currentSong && currentSong.lyric_path" class="icon-button" @click="() => { showLyricEditor = true; newLyricText = lyrics; }">
+                                    <button v-if="hasLyrics" class="icon-button" @click="prepareEditLyric">
                                         <i class="pi pi-pencil"></i> Edit Lyric
                                     </button>
 

@@ -3,6 +3,8 @@ import { defineProps, defineEmits, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { onClickOutside } from '@vueuse/core'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // centralized base
+
 const showMenu = ref(false);
 const menuRef = ref(null)
 const route = useRoute();
@@ -16,7 +18,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['play', 'removed']); // added 'removed' event
+const emit = defineEmits(['play', 'removed']);
 
 const handlePlay = () => {
     emit('play', props.song);
@@ -44,7 +46,6 @@ const toggleMenu = () => {
 // Delete handler: remove music from playlist on backend
 const onDelete = async () => {
   try {
-    // close menu immediately for better UX
     showMenu.value = false;
 
     if (!itemId || !props.song || !props.song.id) {
@@ -52,7 +53,7 @@ const onDelete = async () => {
       return;
     }
 
-    const res = await fetch(`http://localhost:3000/api/playlists/${encodeURIComponent(itemId)}/musics/${encodeURIComponent(props.song.id)}`, {
+    const res = await fetch(`${API_BASE}/api/playlists/${encodeURIComponent(itemId)}/musics/${encodeURIComponent(props.song.id)}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -66,13 +67,8 @@ const onDelete = async () => {
       return;
     }
 
-    // notify parent to update UI
+    // notify parent to update UI (parent should refresh the list)
     emit('removed', props.song.id);
-
-    // reload page so UI reflects backend state (small delay for smoother UX)
-    setTimeout(() => {
-      window.location.reload();
-    }, 150);
 
   } catch (error) {
     console.error('Error removing music from playlist', error);
