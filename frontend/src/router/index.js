@@ -7,6 +7,7 @@ import ArtistsView from '../views/ArtistsView.vue';
 import AddPlaylistView from '../views/AddPlaylistView.vue';
 import EachGroupView from '../views/EachGroupView.vue';
 import AddToPlaylistView from '../views/AddToPlaylistView.vue';
+import MusicsView from '../views/MusicsView.vue';
 
 
 const routes = createRouter({
@@ -36,6 +37,11 @@ const routes = createRouter({
             path: '/artists',
             name: 'artists',
             component: ArtistsView
+        },
+        {
+            path: '/musics',
+            name: 'musics',
+            component: MusicsView
         },
         {
             path: '/:group/:id',
