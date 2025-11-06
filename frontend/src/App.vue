@@ -1,5 +1,5 @@
 <script setup>
-import { provide } from 'vue';
+import { provide, ref } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Player from './components/Player.vue';
@@ -24,18 +24,18 @@ provide('playSong', playSong);
       <h1 class="logo-text">sparkleMusic</h1>
     </RouterLink>
     <div class="search-wrapper">
-      <SearchBar />
+      <SearchBar></SearchBar>
     </div>
   </div>
   <div class="main-content">
     <div class="content-area">
-      <router-view />
+      <RouterView></RouterView>
     </div>
     <aside class="sidebar">
-      <Navbar />
+      <Navbar></Navbar>
     </aside>
   </div>
-  <Player />
+  <Player></Player>
 </template>
 
 <style scoped>
