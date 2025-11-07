@@ -4,7 +4,10 @@ import { RouterView, RouterLink } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Player from './components/Player.vue';
 import SearchBar from './components/SearchBar.vue';
+import LoginButton from './components/LoginButton.vue';
+import { authState } from './store/auth';
 
+console.log('Auth State:', authState);
 // Provide a global play function
 const playSong = (song) => {
     // Dispatch custom event that Player component will listen to
@@ -23,19 +26,26 @@ provide('playSong', playSong);
       <i class="pi pi-sparkles logo-icon"></i>
       <h1 class="logo-text">sparkleMusic</h1>
     </RouterLink>
-    <div class="search-wrapper">
+    <div v-if="authState.isAuthenticated" class="search-wrapper">
       <SearchBar />
     </div>
+    <div v-if="!authState.isAuthenticated">
+      <LoginButton />
+    </div>
+
+    <div v-else>
+      <span>Welcome, {{ authState.user?.name }}</span>
+    </div>
   </div>
-  <div class="main-content">
+  <div v-if="authState.isAuthenticated" class="main-content">
     <div class="content-area">
       <router-view />
     </div>
     <aside class="sidebar">
       <Navbar />
     </aside>
+  <Player />  
   </div>
-  <Player />
 </template>
 
 <style scoped>
