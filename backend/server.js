@@ -795,22 +795,58 @@ app.delete('/api/playlists/:id', async (req, res) => {
 });
 
 // Add music to playlist
+// Add music to playlist
 app.post('/api/playlists/:id/musics', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const { music_id } = req.body;
-    
-    await pool.query(
+
+    if (!music_id) {
+      client.release();
+      return res.status(400).json({ error: 'music_id is required' });
+    }
+
+    await client.query('BEGIN');
+
+    // Ensure playlist exists
+    const pl = await client.query('SELECT id FROM playlists WHERE id = $1', [id]);
+    if (pl.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Playlist not found' });
+    }
+
+    // Ensure music exists
+    const mus = await client.query('SELECT id, title FROM musics WHERE id = $1', [music_id]);
+    if (mus.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Music not found' });
+    }
+
+    // Check if already present in playlist
+    const exists = await client.query(
+      'SELECT 1 FROM music_playlists WHERE music_id = $1 AND playlist_id = $2',
+      [music_id, id]
+    );
+    if (exists.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'Music already in playlist' });
+    }
+
+    await client.query(
       'INSERT INTO music_playlists (music_id, playlist_id) VALUES ($1, $2)',
       [music_id, id]
     );
-    res.status(201).json({ message: 'Music added to playlist' });
+
+    await client.query('COMMIT');
+
+    res.status(201).json({ message: 'Music added to playlist', music: mus.rows[0], playlist_id: parseInt(id) });
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch (e) {}
     console.error(err);
-    if (err.code === '23505') {
-      return res.status(409).json({ error: 'Music already in playlist' });
-    }
     res.status(500).json({ error: 'Database error' });
+  } finally {
+    client.release();
   }
 });
 
