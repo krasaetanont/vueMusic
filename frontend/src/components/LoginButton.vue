@@ -17,7 +17,7 @@ const handleOnSuccess = (response: AuthCodeFlowSuccessResponse) => {
   })
     .then(res => res.json())
     .then((userInfo) => {
-      console.log("User Info:", userInfo);
+      // console.log("User Info:", userInfo);
 
       if (userInfo.email === ALLOWED_EMAIL) {
         authState.user = { email: userInfo.email, name: userInfo.name };
