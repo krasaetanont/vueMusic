@@ -24,10 +24,11 @@ const successMessage = ref('');
 const fetchData = async () => {
   state.isLoading = true;
   try {
-    // Fetch playlist songs
+    // Fetch playlist songs - FIXED: Use relative URL
     const playlistResponse = await axios.get(`/api/playlist/${playlistId}`);
     state.playlistSongs = Array.isArray(playlistResponse.data) ? playlistResponse.data: [];
-    // Fetch all songs
+    
+    // Fetch all songs - FIXED: Use relative URL
     const allSongsResponse = await axios.get('/api/musics');
     state.allSongs = allSongsResponse.data;
     
@@ -35,8 +36,8 @@ const fetchData = async () => {
     if (state.playlistSongs.length > 0 && state.playlistSongs[0].playlists.length > 0) {
       state.playlist = state.playlistSongs[0].playlists.find(p => p.id === parseInt(playlistId));
     } else {
-      // If no songs in playlist, fetch playlist info directly
-      const playlistsResponse = await axios.get('http://localhost:3000/api/playlists');
+      // If no songs in playlist, fetch playlist info directly - FIXED: Use relative URL
+      const playlistsResponse = await axios.get('/api/playlists');
       state.playlist = playlistsResponse.data.find(p => p.id === parseInt(playlistId));
     }
   } catch (error) {
@@ -96,9 +97,9 @@ const addSelectedSongs = async () => {
   successMessage.value = '';
 
   try {
-    // Add each selected song to the playlist
+    // Add each selected song to the playlist - FIXED: Use relative URL
     const promises = Array.from(selectedSongs.value).map(songId =>
-      axios.post(`http://localhost:3000/api/playlists/${playlistId}/musics`, {
+      axios.post(`/api/playlists/${playlistId}/musics`, {
         music_id: songId
       })
     );
