@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   nginx:
@@ -6,44 +6,41 @@ services:
     ports:
       - "81:80"
     depends_on:
-      - frontend
-      - backend
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    restart: always
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      target: production  # Use production stage
+      target: production
     expose:
       - "80"
-    depends_on:
-      - backend
+    restart: unless-stopped
 
   backend:
     build: ./backend
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - ./musicFiles:/musicFiles
-      - ./lyrics:/lyrics
     working_dir: /app
     environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=mysecret
-      - DB_NAME=musicdb
-      - DB_PORT=5432
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: mysecret
+      DB_NAME: musicdb
+      DB_PORT: 5432
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecret
