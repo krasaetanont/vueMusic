@@ -3,8 +3,9 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, provide } from 'vue';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://music.nijserver.link';
-const api = axios.create({ baseURL: API_BASE });
+// Remove the hardcoded API_BASE and use relative URLs instead
+// This will use the current domain which nginx will proxy correctly
+const api = axios.create({ baseURL: '/api' });
 
 const currentSong = ref(null);
 const audio = ref(null);
@@ -109,23 +110,27 @@ const playSong = async (song, index = null, queueOverride = null) => {
     }
     
     if (audio.value) {
-        audio.value.src = `${API_BASE}${song.file_path}`;
+        // Use relative path - nginx will proxy it correctly
+        audio.value.src = song.file_path;
+        console.log('Loading audio from:', song.file_path);
         audio.value.load();
         try {
             await audio.value.play();
             isPlaying.value = true;
         } catch (error) {
             console.error('Error playing audio:', error);
+            console.error('Audio source:', audio.value.src);
             isPlaying.value = false;
         }
     }
 
     if (song.lyric_path) {
         try {
-            const response = await api.get(song.lyric_path, { responseType: 'text' });
+            const response = await axios.get(song.lyric_path, { responseType: 'text' });
             lyrics.value = response.data;
             showLyricEditor.value = false;
         } catch (error) {
+            console.error('Error loading lyrics:', error);
             lyrics.value = 'Lyrics not available';
         }
     } else {
@@ -135,7 +140,7 @@ const playSong = async (song, index = null, queueOverride = null) => {
 
 const loadQueue = async () => {
     try {
-        const response = await api.get('/api/musics');
+        const response = await api.get('/musics');
         queue.value = response.data;
         
         if (currentSong.value) {
@@ -284,11 +289,11 @@ const getGenreNames = (song) => {
 const refreshLyrics = async () => {
     if (!currentSong.value || !currentSong.value.id) return;
     try {
-        const res = await api.get(`/api/musics/${currentSong.value.id}`);
+        const res = await api.get(`/musics/${currentSong.value.id}`);
         const updated = res.data;
         currentSong.value.lyric_path = updated.lyric_path;
         if (updated.lyric_path) {
-            const r = await api.get(updated.lyric_path, { responseType: 'text' });
+            const r = await axios.get(updated.lyric_path, { responseType: 'text' });
             lyrics.value = r.data;
         } else {
             lyrics.value = 'No lyrics available for this song';
@@ -321,7 +326,7 @@ const submitLyric = async () => {
     isSubmittingLyric.value = true;
     try {
         await api.post(
-            `/api/upload/lyric/${currentSong.value.id}`,
+            `/upload/lyric/${currentSong.value.id}`,
             newLyricText.value,
             { headers: { 'Content-Type': 'text/plain' } }
         );
@@ -339,7 +344,7 @@ const deleteLyric = async () => {
     if (!confirm('Delete lyric for this song?')) return;
     isDeletingLyric.value = true;
     try {
-        await api.delete(`/api/delete/lyric/${currentSong.value.id}`);
+        await api.delete(`/delete/lyric/${currentSong.value.id}`);
         await refreshLyrics();
     } catch (err) {
         console.error('Failed to delete lyric:', err);

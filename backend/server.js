@@ -83,7 +83,7 @@ app.post('/api/upload', upload.single('musicFile'), async (req, res) => {
     }
 
     if (!title || !artist || !genre) {
-      // Delete uploaded file if validation fails
+      //   uploaded file if validation fails
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'Title, artist, and genre are required' });
     }
@@ -423,31 +423,69 @@ app.put('/api/musics/:id', async (req, res) => {
 
 // Delete music
 app.delete('/api/musics/:id', async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     
-    // Get file path before deleting
-    const musicResult = await pool.query('SELECT file_path FROM musics WHERE id = $1', [id]);
+    await client.query('BEGIN');
+    
+    // Get file paths before deleting
+    const musicResult = await client.query(
+      'SELECT file_path, lyric_path FROM musics WHERE id = $1', 
+      [id]
+    );
     
     if (musicResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Music not found' });
     }
     
-    const result = await pool.query('DELETE FROM musics WHERE id = $1 RETURNING *', [id]);
+    const { file_path, lyric_path } = musicResult.rows[0];
     
-    // Delete physical file
-    const filePath = musicResult.rows[0].file_path;
-    if (filePath) {
-      const fullPath = path.join(musicDir, path.basename(filePath));
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath);
+    // Delete from database (CASCADE will handle related tables)
+    await client.query('DELETE FROM musics WHERE id = $1', [id]);
+    
+    await client.query('COMMIT');
+    
+    // Delete physical music file
+    if (file_path) {
+      const musicFilePath = path.join('/musicFiles', path.basename(file_path));
+      if (fs.existsSync(musicFilePath)) {
+        try {
+          fs.unlinkSync(musicFilePath);
+          console.log('Deleted music file:', musicFilePath);
+        } catch (err) {
+          console.error('Error deleting music file:', err);
+          // Don't fail the request if file deletion fails
+        }
       }
     }
     
-    res.json({ message: 'Music deleted successfully' });
+    // Delete physical lyric file
+    if (lyric_path) {
+      const lyricFilePath = path.join('/lyrics', path.basename(lyric_path));
+      if (fs.existsSync(lyricFilePath)) {
+        try {
+          fs.unlinkSync(lyricFilePath);
+          console.log('Deleted lyric file:', lyricFilePath);
+        } catch (err) {
+          console.error('Error deleting lyric file:', err);
+          // Don't fail the request if file deletion fails
+        }
+      }
+    }
+    
+    res.json({ 
+      message: 'Music deleted successfully',
+      deleted_music_file: file_path,
+      deleted_lyric_file: lyric_path
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    await client.query('ROLLBACK');
+    console.error('Delete error:', err);
+    res.status(500).json({ error: 'Failed to delete music' });
+  } finally {
+    client.release();
   }
 });
 
@@ -889,4 +927,38 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
+});
+
+// Add this endpoint to your backend/server.js to debug file serving issues
+
+// Debug endpoint to check if music files exist
+app.get('/api/debug/file/:filename', async (req, res) => {
+  const { filename } = req.params;
+  const musicDir = '/musicFiles';
+  const fullPath = path.join(musicDir, filename);
+  
+  try {
+    const exists = fs.existsSync(fullPath);
+    const stats = exists ? fs.statSync(fullPath) : null;
+    
+    // List all files in directory
+    const files = fs.readdirSync(musicDir);
+    
+    res.json({
+      requested: filename,
+      fullPath: fullPath,
+      exists: exists,
+      fileSize: stats ? stats.size : null,
+      isFile: stats ? stats.isFile() : null,
+      allFilesInDirectory: files.slice(0, 10), // First 10 files
+      totalFiles: files.length,
+      musicDirPath: musicDir
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message,
+      requested: filename,
+      fullPath: fullPath
+    });
+  }
 });

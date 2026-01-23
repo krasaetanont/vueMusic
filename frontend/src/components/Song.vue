@@ -3,7 +3,7 @@ import { defineProps, defineEmits, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { onClickOutside } from '@vueuse/core'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // centralized base
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const showMenu = ref(false);
 const menuRef = ref(null)
@@ -39,12 +39,13 @@ const getGenreNames = () => {
 };
 
 // Toggle dropdown
-const toggleMenu = () => {
-  showMenu.value = !showMenu.value
+const toggleMenu = (event) => {
+  event.stopPropagation();
+  showMenu.value = !showMenu.value;
 }
 
-// Delete handler: remove music from playlist on backend
-const onDelete = async () => {
+// Delete from playlist handler
+const onDeleteFromPlaylist = async () => {
   try {
     showMenu.value = false;
 
@@ -67,7 +68,7 @@ const onDelete = async () => {
       return;
     }
 
-    // notify parent to update UI (parent should refresh the list)
+    // notify parent to update UI
     emit('removed', props.song.id);
 
   } catch (error) {
@@ -75,6 +76,44 @@ const onDelete = async () => {
     alert('Error removing song from playlist');
   }
 }
+
+// Delete song completely (from database and file system)
+const onDeleteSong = async () => {
+  try {
+    showMenu.value = false;
+
+    if (!props.song || !props.song.id) {
+      console.error('Missing song id');
+      return;
+    }
+
+    // Confirm deletion
+    const confirmDelete = confirm(`Are you sure you want to permanently delete "${props.song.title}"? This will remove the song from all playlists and delete the audio file.`);
+    if (!confirmDelete) return;
+
+    const res = await fetch(`${API_BASE}/api/musics/${encodeURIComponent(props.song.id)}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error('Failed to delete song', err);
+      alert(err.error || 'Failed to delete song');
+      return;
+    }
+
+    // notify parent to update UI
+    emit('removed', props.song.id);
+
+  } catch (error) {
+    console.error('Error deleting song', error);
+    alert('Error deleting song');
+  }
+}
+
 onClickOutside(menuRef, () => showMenu.value = false)
 </script>
 
@@ -93,7 +132,7 @@ onClickOutside(menuRef, () => showMenu.value = false)
       </div>
     </div>
 
-    <div v-if="itemType == 'playlist'" ref="menuRef" class="relative">
+    <div ref="menuRef" class="relative">
       <button
         @click.stop="toggleMenu"
         class="p-2 rounded-full hover:bg-surface transition"
@@ -104,13 +143,24 @@ onClickOutside(menuRef, () => showMenu.value = false)
       <!-- dropdown menu -->
       <div
         v-if="showMenu"
-        class="absolute right-0 mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg z-10"
+        class="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-lg z-10"
       >
+        <!-- Remove from Playlist option (only show in playlist view) -->
         <button
-          @click="onDelete"
-          class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"
+          v-if="itemType === 'playlist'"
+          @click="onDeleteFromPlaylist"
+          class="block w-full text-left px-4 py-2 text-yellow-500 hover:bg-yellow-500 hover:text-white transition-colors first:rounded-t-xl"
         >
-          <i class="pi pi-trash mr-2"></i> Delete
+          <i class="pi pi-minus-circle mr-2"></i> Remove from Playlist
+        </button>
+        
+        <!-- Delete Song Completely option (show everywhere) -->
+        <button
+          @click="onDeleteSong"
+          class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+          :class="{ 'rounded-xl': itemType !== 'playlist', 'rounded-b-xl': itemType === 'playlist' }"
+        >
+          <i class="pi pi-trash mr-2"></i> Delete Song
         </button>
       </div>
     </div>
@@ -136,4 +186,3 @@ onClickOutside(menuRef, () => showMenu.value = false)
   transition: color 0.12s ease;
 }
 </style>
-
